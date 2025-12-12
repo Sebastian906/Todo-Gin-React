@@ -23,6 +23,10 @@ func main() {
 	// Crear una instancia de Gin
 	router := gin.Default()
 
+	// Middleware para parsear JSON
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
+
 	// Configurar el grupo de rutas para /api/notes
 	notesGroup := router.Group("/api/notes")
 	routes.SetupNoutesRoutes(notesGroup)
