@@ -2,10 +2,11 @@ package main
 
 import (
 	"backend/config"
+	"backend/middleware"
 	"backend/routes"
+	"fmt"
 	"log"
 	"os"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -17,37 +18,33 @@ func main() {
 		log.Fatal("Error cargando el archivo .env")
 	}
 
-	// Conectar a MongoDB
-	config.ConnectDB()
-
-	// Configurar Redis para Rate Limiting
-	config.SetupRedis()
-
-	// Crear una instancia de Gin
-	router := gin.Default()
-
-	// Middleware para parsear JSON
-	// router.Use(gin.Logger())
-	// router.Use(gin.Recovery())
-
-	// Middleware personalizado para logging (equivalente a app.use con logging manual)
-	router.Use(func(c *gin.Context) {
-		// Log antes de procesar la petición
-		println("Req method is", c.Request.Method, "& Req URL is", c.Request.URL.Path)
-		// Continuar con el siguiente handler (equivalente a next())
-		c.Next()
-	})
-
-	// Configurar el grupo de rutas para /api/notes
-	notesGroup := router.Group("/api/notes")
-	routes.SetupNoutesRoutes(notesGroup)
-
 	// Obtener el puerto desde variables de entorno o usar 5001 por defecto
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5001"
 	}
 
+	// Crear una instancia de Gin
+	app := gin.Default()
+	
+	// Middleware de rate limiting
+	app.Use(middleware.RateLimitMiddleware())
+
+	// Middleware personalizado (comentado como en tu server.js)
+	// app.Use(func(c *gin.Context) {
+	// 	fmt.Printf("Req method is %s & Req URL is %s\n", c.Request.Method, c.Request.URL.Path)
+	// 	c.Next()
+	// })
+
+	// Configurar el grupo de rutas para /api/notes
+	notesGroup := app.Group("/api/notes")
+	routes.SetupNoutesRoutes(notesGroup)
+
+	// Conectar a MongoDB y luego iniciar el servidor
+	config.ConnectDB()
+	config.SetupRedis()
+
 	// Iniciar el servidor
-	router.Run(":" + port)
+	fmt.Printf("Server started on PORT: %s\n", port)
+	app.Run(":" + port)
 }
