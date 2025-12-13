@@ -2,6 +2,8 @@ package routes
 
 import (
 	"backend/controllers"
+	"backend/middleware"
+	"time"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,17 +11,17 @@ import (
 func SetupNoutesRoutes(router *gin.RouterGroup) {
 
 	// GET - Obtener todas las notas
-	router.GET("/", controllers.GetAllNotes)
+	router.GET("/", middleware.RateLimitWithConfig(20, 20*time.Second), controllers.GetAllNotes)
 
 	// GET - Obtener una nota por ID
-	router.GET("/:id", controllers.GetNoteById)
+	router.GET("/:id", middleware.RateLimitWithConfig(10, 20*time.Second), controllers.GetNoteById)
 
 	// POST - Crear una nueva nota
-	router.POST("/", controllers.CreateNote)
+	router.POST("/", middleware.RateLimitWithConfig(5, 20*time.Second), controllers.CreateNote)
 
 	// PUT - Actualizar una nota por ID
-	router.PUT("/:id", controllers.UpdateNote)
+	router.PUT("/:id", middleware.RateLimitWithConfig(5, 20*time.Second), controllers.UpdateNote)
 
 	// DELETE - Eliminar una nota por ID
-	router.DELETE("/:id", controllers.DeleteNote)
+	router.DELETE("/:id", middleware.RateLimitWithConfig(5, 20*time.Second), controllers.DeleteNote)
 }
